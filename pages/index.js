@@ -1,9 +1,6 @@
-// Starting scaffold for Public Seed Vault App
-// Framework: Next.js + TailwindCSS + Firebase
-// This will be stylized, support public entries, and allow editing/deletion
-
+// pages/index.js
 import { useEffect, useState } from 'react';
-import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc } from 'firebase/firestore';
+import { collection, getDocs, addDoc } from 'firebase/firestore';
 import { db } from '../firebase';
 
 export default function PublicSeedVault() {
@@ -33,14 +30,14 @@ export default function PublicSeedVault() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    await addDoc(collection(db, 'publicSeeds'), form);
-    setForm({ breeder: '', strain: '', type: '', sex: '', notes: '', packs: 1 });
-    fetchSeeds();
-  };
-
-  const handleDelete = async (id) => {
-    await deleteDoc(doc(db, 'publicSeeds', id));
-    fetchSeeds();
+    try {
+      await addDoc(collection(db, 'publicSeeds'), form);
+      setForm({ breeder: '', strain: '', type: '', sex: '', notes: '', packs: 1 });
+      fetchSeeds();
+      alert('Entry added!');
+    } catch (error) {
+      console.error('Error adding entry:', error);
+    }
   };
 
   return (
@@ -60,25 +57,11 @@ export default function PublicSeedVault() {
           <option value="reg">Regular</option>
           <option value="fem">Feminized</option>
         </select>
+        <label className="block mb-1 font-medium">Pack Count</label>
         <input name="packs" type="number" min="1" value={form.packs} onChange={handleChange} className="border p-2 rounded w-full" />
         <textarea name="notes" placeholder="Notes (optional)" value={form.notes} onChange={handleChange} className="border p-2 rounded w-full" rows={3} />
         <button type="submit" className="bg-green-600 text-white px-4 py-2 rounded">➕ Add Entry</button>
       </form>
-
-      <div className="grid gap-4">
-        {seeds.map((seed) => (
-          <div key={seed.id} className="border p-4 rounded shadow">
-            <h2 className="font-semibold text-lg">{seed.breeder} – {seed.strain}</h2>
-            <p className="text-sm text-gray-600">{seed.type} / {seed.sex} – {seed.packs} pack(s)</p>
-            <p className="text-sm mt-1">{seed.notes}</p>
-            <button
-              onClick={() => handleDelete(seed.id)}
-              className="mt-2 text-red-600 text-sm underline hover:text-red-800"
-            >🗑️ Delete</button>
-          </div>
-        ))}
-      </div>
     </div>
   );
 }
-
