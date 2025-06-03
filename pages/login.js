@@ -1,18 +1,17 @@
 // pages/login.js
 import { useState } from 'react';
 import { useRouter } from 'next/router';
-import { auth } from '../firebase';
+import { auth, provider } from '../firebase';
 import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
-  GoogleAuthProvider,
   signInWithPopup,
 } from 'firebase/auth';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [isLogin, setIsLogin] = useState(true); // toggle between login/signup
+  const [isLogin, setIsLogin] = useState(true);
   const router = useRouter();
 
   const handleSubmit = async (e) => {
@@ -31,7 +30,6 @@ export default function LoginPage() {
 
   const handleGoogleLogin = async () => {
     try {
-      import { auth, provider } from '../firebase';
       await signInWithPopup(auth, provider);
       router.push('/');
     } catch (err) {
