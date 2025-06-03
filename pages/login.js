@@ -31,7 +31,7 @@ export default function LoginPage() {
 
   const handleGoogleLogin = async () => {
     try {
-      const provider = new GoogleAuthProvider();
+      import { auth, provider } from '../firebase';
       await signInWithPopup(auth, provider);
       router.push('/');
     } catch (err) {
