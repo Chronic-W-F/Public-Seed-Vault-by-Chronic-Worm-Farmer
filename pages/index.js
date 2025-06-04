@@ -92,25 +92,31 @@ export default function Home() {
           </div>
 
           <div className="mb-4">
-            <label className="block font-semibold">Type (photo or auto)</label>
-            <input
-              type="text"
+            <label className="block font-semibold">Type</label>
+            <select
               name="type"
               value={form.type}
               onChange={handleChange}
               className="w-full p-2 border rounded"
-            />
+            >
+              <option value="">Select Type</option>
+              <option value="Photo">Photo</option>
+              <option value="Auto">Auto</option>
+            </select>
           </div>
 
           <div className="mb-4">
-            <label className="block font-semibold">Sex (reg or fem)</label>
-            <input
-              type="text"
+            <label className="block font-semibold">Sex</label>
+            <select
               name="sex"
               value={form.sex}
               onChange={handleChange}
               className="w-full p-2 border rounded"
-            />
+            >
+              <option value="">Select Sex</option>
+              <option value="Reg">Reg</option>
+              <option value="Fem">Fem</option>
+            </select>
           </div>
 
           <div className="mb-4">
