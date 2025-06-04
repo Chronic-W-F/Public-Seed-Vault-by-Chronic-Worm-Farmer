@@ -34,11 +34,12 @@ export default function IndexPage() {
     e.preventDefault();
     if (!user) return alert("You must be logged in to submit");
 
-    await addDoc(collection(db, 'publicSeeds'), {
-      ...form,
-      uid: user.uid,
-      createdAt: new Date()
-    });
+   await addDoc(collection(db, 'publicSeeds'), {
+  ...form,
+  userId: user.uid,
+  createdAt: new Date()
+});
+
 
     setForm({ breeder: '', strain: '', type: '', sex: '', notes: '', packs: 1 });
     alert("Entry added!");
