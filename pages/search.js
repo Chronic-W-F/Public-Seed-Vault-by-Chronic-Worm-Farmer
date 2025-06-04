@@ -62,7 +62,7 @@ export default function SearchPage() {
           Logout
         </button>
         <button
-          onClick={() => router.push('/data-entry')}
+          onClick={() => router.push('/')}
           className="text-blue-500 underline text-sm"
         >
           Back to Data Entry
