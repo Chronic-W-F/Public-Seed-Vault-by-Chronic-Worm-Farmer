@@ -1,13 +1,16 @@
-import { useState, useEffect } from 'react';
-import { db, auth } from '../firebase';
-import { addDoc, collection } from 'firebase/firestore';
-import { useAuthState } from 'react-firebase-hooks/auth';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
+import { getAuth, onAuthStateChanged } from 'firebase/auth';
+import { collection, addDoc, getFirestore } from 'firebase/firestore';
+import { app } from '../firebase';
 import Navbar from '../components/Navbar';
 
-export default function IndexPage() {
-  const [user, loading] = useAuthState(auth);
+export default function Home() {
   const router = useRouter();
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  const [user, setUser] = useState(null);
   const [form, setForm] = useState({
     breeder: '',
     strain: '',
@@ -18,13 +21,15 @@ export default function IndexPage() {
   });
 
   useEffect(() => {
-    if (!loading && !user) {
-      const timer = setTimeout(() => {
-        router.push('/login');
-      }, 1500);
-      return () => clearTimeout(timer);
-    }
-  }, [user, loading, router]);
+    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+      if (firebaseUser) {
+        setUser(firebaseUser);
+      } else {
+        setUser(null);
+      }
+    });
+    return () => unsubscribe();
+  }, []);
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -34,13 +39,25 @@ export default function IndexPage() {
     e.preventDefault();
     if (!user) return alert("You must be logged in to submit");
 
-  await addDoc(collection(db, 'publicSeeds'), {
-  ...form,
-  userId: user.uid,
-  createdAt: new Date()
-});
- setForm({ breeder: '', strain: '', type: '', sex: '', notes: '', packs: 1 });
-    alert("Entry added!");
+    try {
+      await addDoc(collection(db, 'publicSeeds'), {
+        ...form,
+        userId: user.uid,
+        createdAt: new Date(),
+      });
+      setForm({
+        breeder: '',
+        strain: '',
+        type: '',
+        sex: '',
+        notes: '',
+        packs: 1,
+      });
+      alert("Entry added!");
+    } catch (error) {
+      console.error("Error adding document:", error);
+      alert("Something went wrong. Please try again.");
+    }
   };
 
   return (
@@ -54,26 +71,81 @@ export default function IndexPage() {
             ⚠️ You must be logged in to submit. Redirecting...
           </div>
         ) : (
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <input name="breeder" placeholder="Breeder" value={form.breeder} onChange={handleChange} className="border p-2 rounded w-full text-sm" required />
-            <input name="strain" placeholder="Strain" value={form.strain} onChange={handleChange} className="border p-2 rounded w-full text-sm" required />
+          <form onSubmit={handleSubmit} className="bg-white p-6 rounded shadow">
+            <div className="mb-4">
+              <label className="block font-semibold">Breeder</label>
+              <input
+                type="text"
+                name="breeder"
+                value={form.breeder}
+                onChange={handleChange}
+                required
+                className="w-full p-2 border rounded"
+              />
+            </div>
 
-            <select name="type" value={form.type} onChange={handleChange} className="border p-2 rounded w-full text-sm">
-              <option value="">Select Type</option>
-              <option value="photo">Photoperiod</option>
-              <option value="auto">Autoflower</option>
-            </select>
+            <div className="mb-4">
+              <label className="block font-semibold">Strain</label>
+              <input
+                type="text"
+                name="strain"
+                value={form.strain}
+                onChange={handleChange}
+                required
+                className="w-full p-2 border rounded"
+              />
+            </div>
 
-            <select name="sex" value={form.sex} onChange={handleChange} className="border p-2 rounded w-full text-sm">
-              <option value="">Select Sex</option>
-              <option value="reg">Regular</option>
-              <option value="fem">Feminized</option>
-            </select>
+            <div className="mb-4">
+              <label className="block font-semibold">Type (photo or auto)</label>
+              <input
+                type="text"
+                name="type"
+                value={form.type}
+                onChange={handleChange}
+                className="w-full p-2 border rounded"
+              />
+            </div>
 
-            <input name="packs" type="number" min="1" value={form.packs} onChange={handleChange} className="border p-2 rounded w-full text-sm" placeholder="Pack Count" />
-            <textarea name="notes" placeholder="Notes (optional)" value={form.notes} onChange={handleChange} className="border p-2 rounded w-full text-sm" rows={3} />
+            <div className="mb-4">
+              <label className="block font-semibold">Sex (reg or fem)</label>
+              <input
+                type="text"
+                name="sex"
+                value={form.sex}
+                onChange={handleChange}
+                className="w-full p-2 border rounded"
+              />
+            </div>
 
-            <button type="submit" className="bg-green-600 text-white px-4 py-2 rounded text-sm">➕ Add Entry</button>
+            <div className="mb-4">
+              <label className="block font-semibold">Notes</label>
+              <textarea
+                name="notes"
+                value={form.notes}
+                onChange={handleChange}
+                className="w-full p-2 border rounded"
+              />
+            </div>
+
+            <div className="mb-6">
+              <label className="block font-semibold">Packs on Hand</label>
+              <input
+                type="number"
+                name="packs"
+                value={form.packs}
+                onChange={handleChange}
+                min="1"
+                className="w-full p-2 border rounded"
+              />
+            </div>
+
+            <button
+              type="submit"
+              className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
+            >
+              Submit Entry
+            </button>
           </form>
         )}
       </div>
