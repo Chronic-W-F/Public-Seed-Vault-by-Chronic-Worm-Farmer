@@ -17,7 +17,6 @@ export default function Home() {
     type: '',
     sex: '',
     notes: '',
-    packs: 1,
   });
 
   useEffect(() => {
@@ -25,7 +24,7 @@ export default function Home() {
       if (firebaseUser) {
         setUser(firebaseUser);
       } else {
-        router.push('/login'); // ✅ Redirect to login if not logged in
+        router.push('/login');
       }
     });
     return () => unsubscribe();
@@ -51,7 +50,6 @@ export default function Home() {
         type: '',
         sex: '',
         notes: '',
-        packs: 1,
       });
       alert("Entry added!");
     } catch (error) {
@@ -119,24 +117,12 @@ export default function Home() {
             </select>
           </div>
 
-          <div className="mb-4">
+          <div className="mb-6">
             <label className="block font-semibold">Notes</label>
             <textarea
               name="notes"
               value={form.notes}
               onChange={handleChange}
-              className="w-full p-2 border rounded"
-            />
-          </div>
-
-          <div className="mb-6">
-            <label className="block font-semibold">Packs on Hand</label>
-            <input
-              type="number"
-              name="packs"
-              value={form.packs}
-              onChange={handleChange}
-              min="1"
               className="w-full p-2 border rounded"
             />
           </div>
