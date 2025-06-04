@@ -66,11 +66,16 @@ export default function SearchPage() {
     );
 
     const snapshot = await getDocs(q);
+    const term = searchTerm.toLowerCase();
+
     const filtered = snapshot.docs
       .map(doc => ({ id: doc.id, ...doc.data() }))
       .filter(entry =>
-        entry.breeder?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        entry.strain?.toLowerCase().includes(searchTerm.toLowerCase())
+        entry.breeder?.toLowerCase().includes(term) ||
+        entry.strain?.toLowerCase().includes(term) ||
+        entry.type?.toLowerCase().includes(term) ||
+        entry.sex?.toLowerCase().includes(term) ||
+        entry.notes?.toLowerCase().includes(term)
       );
 
     console.log("Current user ID:", user?.uid);
@@ -125,7 +130,7 @@ export default function SearchPage() {
 
       <input
         type="text"
-        placeholder="Search by breeder or strain"
+        placeholder="Search by breeder, strain, type, sex, or notes"
         value={searchTerm}
         onChange={(e) => setSearchTerm(e.target.value)}
         className="w-full p-2 border border-gray-300 rounded mb-4"
