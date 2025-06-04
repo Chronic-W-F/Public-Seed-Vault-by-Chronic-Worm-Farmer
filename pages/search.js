@@ -51,22 +51,28 @@ export default function SearchPage() {
 
   const handleSearch = async () => {
     if (!user || !searchTerm) return;
+
     const q = query(
-      collection(db, 'seeds'),
+      collection(db, 'publicSeeds'), // ✅ Must match where you're saving entries
       where('userId', '==', user.uid)
     );
-    const querySnapshot = await getDocs(q);
-    const filtered = querySnapshot.docs
+
+    const snapshot = await getDocs(q);
+    const filtered = snapshot.docs
       .map(doc => ({ id: doc.id, ...doc.data() }))
       .filter(entry =>
         entry.breeder?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         entry.strain?.toLowerCase().includes(searchTerm.toLowerCase())
       );
+
+    console.log("Current user ID:", user?.uid);
+    console.log("Fetched documents:", snapshot.docs.map(doc => doc.data()));
+
     setResults(filtered);
   };
 
   const handleDelete = async (id) => {
-    await deleteDoc(doc(db, 'seeds', id));
+    await deleteDoc(doc(db, 'publicSeeds', id));
     setResults(results.filter(entry => entry.id !== id));
   };
 
@@ -86,9 +92,9 @@ export default function SearchPage() {
   };
 
   const handleEditSave = async () => {
-    await updateDoc(doc(db, 'seeds', editEntryId), editForm);
+    await updateDoc(doc(db, 'publicSeeds', editEntryId), editForm);
     setEditEntryId(null);
-    handleSearch(); // Refresh results
+    handleSearch(); // Refresh after saving
   };
 
   return (
