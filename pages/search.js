@@ -1,54 +1,93 @@
-// pages/search.js
-import { useState, useEffect } from 'react';
-import { db, auth } from '../firebase';
-import { collection, getDocs, query, where } from 'firebase/firestore';
-import { useAuthState } from 'react-firebase-hooks/auth';
-import Navbar from '../components/Navbar';
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/router';
+import { getAuth, signOut, onAuthStateChanged } from 'firebase/auth';
+import { collection, getDocs, getFirestore, query, where } from 'firebase/firestore';
+import { app } from '../firebase'; // adjust path if needed
 
 export default function SearchPage() {
-  const [user] = useAuthState(auth);
-  const [queryText, setQueryText] = useState('');
+  const router = useRouter();
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+  const [user, setUser] = useState(null);
+  const [searchTerm, setSearchTerm] = useState('');
   const [results, setResults] = useState([]);
 
   useEffect(() => {
-    if (!queryText || !user) return setResults([]);
+    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+      if (firebaseUser) {
+        setUser(firebaseUser);
+      } else {
+        router.push('/login');
+      }
+    });
+    return () => unsubscribe();
+  }, [auth, router]);
 
-    const fetchSeeds = async () => {
-      const snapshot = await getDocs(query(collection(db, 'publicSeeds'), where('uid', '==', user.uid)));
-      const allSeeds = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+      router.push('/login');
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
+  };
 
-      const filtered = allSeeds.filter(seed =>
-        `${seed.breeder} ${seed.strain} ${seed.type} ${seed.sex} ${seed.notes || ''}`
-          .toLowerCase()
-          .includes(queryText.toLowerCase())
+  const handleSearch = async () => {
+    if (!user || !searchTerm) return;
+    const q = query(
+      collection(db, 'seeds'),
+      where('userId', '==', user.uid)
+    );
+    const querySnapshot = await getDocs(q);
+    const filtered = querySnapshot.docs
+      .map(doc => ({ id: doc.id, ...doc.data() }))
+      .filter(entry =>
+        entry.breeder?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        entry.strain?.toLowerCase().includes(searchTerm.toLowerCase())
       );
-
-      setResults(filtered);
-    };
-
-    fetchSeeds();
-  }, [queryText, user]);
+    setResults(filtered);
+  };
 
   return (
-    <div className="p-6 max-w-4xl mx-auto">
-      <Navbar />
-      <h1 className="text-2xl font-bold mb-4">🔍 Search the Vault</h1>
+    <div className="min-h-screen bg-gray-100 p-6">
+      <div className="flex justify-between items-center mb-4">
+        <h1 className="text-2xl font-bold">Search Your Seed Vault</h1>
+        <button
+          onClick={handleLogout}
+          className="text-red-500 underline text-sm"
+        >
+          Logout
+        </button>
+      </div>
 
       <input
         type="text"
-        placeholder="Search by breeder, strain, notes..."
-        className="border p-2 rounded w-full mb-6"
-        value={queryText}
-        onChange={(e) => setQueryText(e.target.value)}
+        placeholder="Search by breeder or strain"
+        value={searchTerm}
+        onChange={(e) => setSearchTerm(e.target.value)}
+        className="w-full p-2 border border-gray-300 rounded mb-4"
       />
+      <button
+        onClick={handleSearch}
+        className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+      >
+        Search
+      </button>
 
-      {results.map((seed) => (
-        <div key={seed.id} className="border-b pb-4 mb-4">
-          <h2 className="font-semibold text-lg">{seed.breeder} – {seed.strain}</h2>
-          <p className="text-sm text-gray-600">{seed.type} / {seed.sex} – {seed.packs} pack(s)</p>
-          {seed.notes && <p className="text-sm mt-1">{seed.notes}</p>}
-        </div>
-      ))}
+      <div className="mt-6">
+        {results.length === 0 && searchTerm && (
+          <p>No results found.</p>
+        )}
+        {results.map((entry) => (
+          <div key={entry.id} className="mb-4 p-4 bg-white rounded shadow">
+            <p><strong>Breeder:</strong> {entry.breeder}</p>
+            <p><strong>Strain:</strong> {entry.strain}</p>
+            <p><strong>Type:</strong> {entry.type}</p>
+            <p><strong>Sex:</strong> {entry.sex}</p>
+            <p><strong>Notes:</strong> {entry.notes}</p>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
