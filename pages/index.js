@@ -25,7 +25,7 @@ export default function Home() {
       if (firebaseUser) {
         setUser(firebaseUser);
       } else {
-        setUser(null);
+        router.push('/login'); // ✅ Redirect to login if not logged in
       }
     });
     return () => unsubscribe();
@@ -66,88 +66,82 @@ export default function Home() {
       <div className="p-6 max-w-4xl mx-auto">
         <h1 className="text-2xl font-bold mb-4">🌱 Public Seed Vault – Add Seeds</h1>
 
-        {!user ? (
-          <div className="text-center text-red-600 text-lg font-semibold mt-10">
-            ⚠️ You must be logged in to submit. Redirecting...
+        <form onSubmit={handleSubmit} className="bg-white p-6 rounded shadow">
+          <div className="mb-4">
+            <label className="block font-semibold">Breeder</label>
+            <input
+              type="text"
+              name="breeder"
+              value={form.breeder}
+              onChange={handleChange}
+              required
+              className="w-full p-2 border rounded"
+            />
           </div>
-        ) : (
-          <form onSubmit={handleSubmit} className="bg-white p-6 rounded shadow">
-            <div className="mb-4">
-              <label className="block font-semibold">Breeder</label>
-              <input
-                type="text"
-                name="breeder"
-                value={form.breeder}
-                onChange={handleChange}
-                required
-                className="w-full p-2 border rounded"
-              />
-            </div>
 
-            <div className="mb-4">
-              <label className="block font-semibold">Strain</label>
-              <input
-                type="text"
-                name="strain"
-                value={form.strain}
-                onChange={handleChange}
-                required
-                className="w-full p-2 border rounded"
-              />
-            </div>
+          <div className="mb-4">
+            <label className="block font-semibold">Strain</label>
+            <input
+              type="text"
+              name="strain"
+              value={form.strain}
+              onChange={handleChange}
+              required
+              className="w-full p-2 border rounded"
+            />
+          </div>
 
-            <div className="mb-4">
-              <label className="block font-semibold">Type (photo or auto)</label>
-              <input
-                type="text"
-                name="type"
-                value={form.type}
-                onChange={handleChange}
-                className="w-full p-2 border rounded"
-              />
-            </div>
+          <div className="mb-4">
+            <label className="block font-semibold">Type (photo or auto)</label>
+            <input
+              type="text"
+              name="type"
+              value={form.type}
+              onChange={handleChange}
+              className="w-full p-2 border rounded"
+            />
+          </div>
 
-            <div className="mb-4">
-              <label className="block font-semibold">Sex (reg or fem)</label>
-              <input
-                type="text"
-                name="sex"
-                value={form.sex}
-                onChange={handleChange}
-                className="w-full p-2 border rounded"
-              />
-            </div>
+          <div className="mb-4">
+            <label className="block font-semibold">Sex (reg or fem)</label>
+            <input
+              type="text"
+              name="sex"
+              value={form.sex}
+              onChange={handleChange}
+              className="w-full p-2 border rounded"
+            />
+          </div>
 
-            <div className="mb-4">
-              <label className="block font-semibold">Notes</label>
-              <textarea
-                name="notes"
-                value={form.notes}
-                onChange={handleChange}
-                className="w-full p-2 border rounded"
-              />
-            </div>
+          <div className="mb-4">
+            <label className="block font-semibold">Notes</label>
+            <textarea
+              name="notes"
+              value={form.notes}
+              onChange={handleChange}
+              className="w-full p-2 border rounded"
+            />
+          </div>
 
-            <div className="mb-6">
-              <label className="block font-semibold">Packs on Hand</label>
-              <input
-                type="number"
-                name="packs"
-                value={form.packs}
-                onChange={handleChange}
-                min="1"
-                className="w-full p-2 border rounded"
-              />
-            </div>
+          <div className="mb-6">
+            <label className="block font-semibold">Packs on Hand</label>
+            <input
+              type="number"
+              name="packs"
+              value={form.packs}
+              onChange={handleChange}
+              min="1"
+              className="w-full p-2 border rounded"
+            />
+          </div>
 
-            <button
-              type="submit"
-              className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
-            >
-              Submit Entry
-            </button>
-          </form>
-        )}
+          <button
+            type="submit"
+            className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
+          >
+            Submit Entry
+          </button>
+        </form>
       </div>
     </>
   );
