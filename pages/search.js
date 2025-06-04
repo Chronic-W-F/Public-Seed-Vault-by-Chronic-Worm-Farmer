@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import { getAuth, signOut, onAuthStateChanged } from 'firebase/auth';
 import { collection, getDocs, getFirestore, query, where } from 'firebase/firestore';
-import { app } from '../firebase'; // adjust path if needed
+import { app } from '../firebase';
 
 export default function SearchPage() {
   const router = useRouter();
@@ -34,10 +34,12 @@ export default function SearchPage() {
 
   const handleSearch = async () => {
     if (!user || !searchTerm) return;
+
     const q = query(
       collection(db, 'seeds'),
       where('userId', '==', user.uid)
     );
+
     const querySnapshot = await getDocs(q);
     const filtered = querySnapshot.docs
       .map(doc => ({ id: doc.id, ...doc.data() }))
@@ -45,18 +47,25 @@ export default function SearchPage() {
         entry.breeder?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         entry.strain?.toLowerCase().includes(searchTerm.toLowerCase())
       );
+
     setResults(filtered);
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 p-6">
+    <div className="min-h-screen bg-gray-100 p-6 font-sans">
       <div className="flex justify-between items-center mb-4">
         <h1 className="text-2xl font-bold">Search Your Seed Vault</h1>
-        <button
-          onClick={handleLogout}
-          className="text-red-500 underline text-sm"
-        >
+      </div>
+
+      <div className="flex items-center space-x-4 mb-4">
+        <button onClick={handleLogout} className="text-red-500 underline text-sm">
           Logout
+        </button>
+        <button
+          onClick={() => router.push('/data-entry')}
+          className="text-blue-500 underline text-sm"
+        >
+          Back to Data Entry
         </button>
       </div>
 
