@@ -1,7 +1,16 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import { getAuth, signOut, onAuthStateChanged } from 'firebase/auth';
-import { collection, getDocs, getFirestore, query, where } from 'firebase/firestore';
+import {
+  collection,
+  getDocs,
+  getFirestore,
+  query,
+  where,
+  doc,
+  deleteDoc,
+  updateDoc
+} from 'firebase/firestore';
 import { app } from '../firebase';
 
 export default function SearchPage() {
@@ -11,6 +20,14 @@ export default function SearchPage() {
   const [user, setUser] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [results, setResults] = useState([]);
+  const [editEntryId, setEditEntryId] = useState(null);
+  const [editForm, setEditForm] = useState({
+    breeder: '',
+    strain: '',
+    type: '',
+    sex: '',
+    notes: '',
+  });
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
@@ -34,12 +51,10 @@ export default function SearchPage() {
 
   const handleSearch = async () => {
     if (!user || !searchTerm) return;
-
     const q = query(
       collection(db, 'seeds'),
       where('userId', '==', user.uid)
     );
-
     const querySnapshot = await getDocs(q);
     const filtered = querySnapshot.docs
       .map(doc => ({ id: doc.id, ...doc.data() }))
@@ -47,8 +62,33 @@ export default function SearchPage() {
         entry.breeder?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         entry.strain?.toLowerCase().includes(searchTerm.toLowerCase())
       );
-
     setResults(filtered);
+  };
+
+  const handleDelete = async (id) => {
+    await deleteDoc(doc(db, 'seeds', id));
+    setResults(results.filter(entry => entry.id !== id));
+  };
+
+  const handleEditClick = (entry) => {
+    setEditEntryId(entry.id);
+    setEditForm({
+      breeder: entry.breeder,
+      strain: entry.strain,
+      type: entry.type,
+      sex: entry.sex,
+      notes: entry.notes,
+    });
+  };
+
+  const handleEditChange = (e) => {
+    setEditForm({ ...editForm, [e.target.name]: e.target.value });
+  };
+
+  const handleEditSave = async () => {
+    await updateDoc(doc(db, 'seeds', editEntryId), editForm);
+    setEditEntryId(null);
+    handleSearch(); // Refresh results
   };
 
   return (
@@ -84,16 +124,84 @@ export default function SearchPage() {
       </button>
 
       <div className="mt-6">
-        {results.length === 0 && searchTerm && (
-          <p>No results found.</p>
-        )}
+        {results.length === 0 && searchTerm && <p>No results found.</p>}
         {results.map((entry) => (
           <div key={entry.id} className="mb-4 p-4 bg-white rounded shadow">
-            <p><strong>Breeder:</strong> {entry.breeder}</p>
-            <p><strong>Strain:</strong> {entry.strain}</p>
-            <p><strong>Type:</strong> {entry.type}</p>
-            <p><strong>Sex:</strong> {entry.sex}</p>
-            <p><strong>Notes:</strong> {entry.notes}</p>
+            {editEntryId === entry.id ? (
+              <>
+                <input
+                  name="breeder"
+                  value={editForm.breeder}
+                  onChange={handleEditChange}
+                  className="block w-full mb-2 p-1 border rounded"
+                  placeholder="Breeder"
+                />
+                <input
+                  name="strain"
+                  value={editForm.strain}
+                  onChange={handleEditChange}
+                  className="block w-full mb-2 p-1 border rounded"
+                  placeholder="Strain"
+                />
+                <input
+                  name="type"
+                  value={editForm.type}
+                  onChange={handleEditChange}
+                  className="block w-full mb-2 p-1 border rounded"
+                  placeholder="Type"
+                />
+                <input
+                  name="sex"
+                  value={editForm.sex}
+                  onChange={handleEditChange}
+                  className="block w-full mb-2 p-1 border rounded"
+                  placeholder="Sex"
+                />
+                <textarea
+                  name="notes"
+                  value={editForm.notes}
+                  onChange={handleEditChange}
+                  className="block w-full mb-2 p-1 border rounded"
+                  placeholder="Notes"
+                />
+                <div className="flex space-x-2">
+                  <button
+                    onClick={handleEditSave}
+                    className="bg-blue-600 text-white px-3 py-1 rounded"
+                  >
+                    Save
+                  </button>
+                  <button
+                    onClick={() => setEditEntryId(null)}
+                    className="text-gray-600 underline"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </>
+            ) : (
+              <>
+                <p><strong>Breeder:</strong> {entry.breeder}</p>
+                <p><strong>Strain:</strong> {entry.strain}</p>
+                <p><strong>Type:</strong> {entry.type}</p>
+                <p><strong>Sex:</strong> {entry.sex}</p>
+                <p><strong>Notes:</strong> {entry.notes}</p>
+                <div className="flex space-x-4 mt-2">
+                  <button
+                    onClick={() => handleEditClick(entry)}
+                    className="text-blue-600 underline text-sm"
+                  >
+                    Edit
+                  </button>
+                  <button
+                    onClick={() => handleDelete(entry.id)}
+                    className="text-red-600 underline text-sm"
+                  >
+                    Delete
+                  </button>
+                </div>
+              </>
+            )}
           </div>
         ))}
       </div>
