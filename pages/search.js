@@ -40,6 +40,14 @@ export default function SearchPage() {
     return () => unsubscribe();
   }, [auth, router]);
 
+  useEffect(() => {
+    if (user && searchTerm.trim().length > 0) {
+      handleSearch();
+    } else {
+      setResults([]);
+    }
+  }, [searchTerm]);
+
   const handleLogout = async () => {
     try {
       await signOut(auth);
@@ -53,7 +61,7 @@ export default function SearchPage() {
     if (!user || !searchTerm) return;
 
     const q = query(
-      collection(db, 'publicSeeds'), // ✅ Must match where you're saving entries
+      collection(db, 'publicSeeds'),
       where('userId', '==', user.uid)
     );
 
@@ -94,7 +102,7 @@ export default function SearchPage() {
   const handleEditSave = async () => {
     await updateDoc(doc(db, 'publicSeeds', editEntryId), editForm);
     setEditEntryId(null);
-    handleSearch(); // Refresh after saving
+    handleSearch(); // Refresh results
   };
 
   return (
@@ -122,12 +130,6 @@ export default function SearchPage() {
         onChange={(e) => setSearchTerm(e.target.value)}
         className="w-full p-2 border border-gray-300 rounded mb-4"
       />
-      <button
-        onClick={handleSearch}
-        className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
-      >
-        Search
-      </button>
 
       <div className="mt-6">
         {results.length === 0 && searchTerm && <p>No results found.</p>}
@@ -149,20 +151,26 @@ export default function SearchPage() {
                   className="block w-full mb-2 p-1 border rounded"
                   placeholder="Strain"
                 />
-                <input
+                <select
                   name="type"
                   value={editForm.type}
                   onChange={handleEditChange}
                   className="block w-full mb-2 p-1 border rounded"
-                  placeholder="Type"
-                />
-                <input
+                >
+                  <option value="">Select Type</option>
+                  <option value="Photo">Photo</option>
+                  <option value="Auto">Auto</option>
+                </select>
+                <select
                   name="sex"
                   value={editForm.sex}
                   onChange={handleEditChange}
                   className="block w-full mb-2 p-1 border rounded"
-                  placeholder="Sex"
-                />
+                >
+                  <option value="">Select Sex</option>
+                  <option value="Reg">Reg</option>
+                  <option value="Fem">Fem</option>
+                </select>
                 <textarea
                   name="notes"
                   value={editForm.notes}
