@@ -39,7 +39,8 @@ export default function LoginPage() {
   return (
     <div
       className="min-h-screen bg-cover bg-center bg-no-repeat"
-      style={{ backgroundImage: "url('/vault-bg.png')" }} // or 'vault-bg.jpg' if you convert it
+      style={{ backgroundImage: "url('/publicvault-bg.png')" }}
+
     >
       <div className="min-h-screen bg-white/80 backdrop-blur-sm flex items-center justify-center p-4">
         <div className="bg-white p-6 rounded-xl shadow-xl max-w-md w-full">
