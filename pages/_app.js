@@ -1,4 +1,4 @@
-import '../styles/globals.css'; // adjust path if your CSS is named differently
+import '../styles/globals.css';
 import BackgroundLayout from '../components/BackgroundLayout';
 
 export default function App({ Component, pageProps }) {
