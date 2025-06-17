@@ -1,14 +1,30 @@
 export default function BackgroundLayout({ children }) {
   return (
     <div
-      className="bg-[url('/vault-bg.png')] bg-cover bg-center bg-no-repeat min-h-screen w-full flex flex-col"
+      style={{
+        backgroundImage: "url('/vault-bg.png')",
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat',
+        minHeight: '100vh',
+        width: '100%',
+      }}
     >
-      <div className="min-h-screen w-full bg-white/80 backdrop-blur-sm flex flex-col">
-        <main className="flex-grow flex items-center justify-center w-full px-4 py-8">
-          <div className="w-full max-w-4xl">
-            {children}
-          </div>
-        </main>
+      <div
+        style={{
+          backgroundColor: 'rgba(255, 255, 255, 0.8)',
+          backdropFilter: 'blur(4px)',
+          minHeight: '100vh',
+          width: '100%',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          padding: '2rem',
+        }}
+      >
+        <div style={{ width: '100%', maxWidth: '1024px' }}>
+          {children}
+        </div>
       </div>
     </div>
   );
