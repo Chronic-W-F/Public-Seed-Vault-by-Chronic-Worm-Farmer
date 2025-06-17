@@ -1,4 +1,3 @@
-// pages/login.js
 import { useState } from 'react';
 import { useRouter } from 'next/router';
 import { auth, provider } from '../firebase';
@@ -38,46 +37,53 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="p-6 max-w-md mx-auto">
-      <h1 className="text-xl font-bold mb-4">
-        {isLogin ? 'Login to Your Vault' : 'Create an Account'}
-      </h1>
+    <div
+      className="min-h-screen bg-cover bg-center bg-no-repeat"
+      style={{ backgroundImage: "url('/vault-bg.png')" }} // or 'vault-bg.jpg' if you convert it
+    >
+      <div className="min-h-screen bg-white/80 backdrop-blur-sm flex items-center justify-center p-4">
+        <div className="bg-white p-6 rounded-xl shadow-xl max-w-md w-full">
+          <h1 className="text-xl font-bold mb-6 text-center">
+            {isLogin ? 'Login to Your Vault' : 'Create an Account'}
+          </h1>
 
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <input
-          type="email"
-          placeholder="Email"
-          className="border p-2 rounded w-full"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-        />
-        <input
-          type="password"
-          placeholder="Password"
-          className="border p-2 rounded w-full"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-        />
-        <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded w-full">
-          {isLogin ? 'Login' : 'Sign Up'}
-        </button>
-      </form>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <input
+              type="email"
+              placeholder="Email"
+              className="border p-2 rounded w-full"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
+            <input
+              type="password"
+              placeholder="Password"
+              className="border p-2 rounded w-full"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
+            <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded w-full">
+              {isLogin ? 'Login' : 'Sign Up'}
+            </button>
+          </form>
 
-      <button
-        onClick={handleGoogleLogin}
-        className="bg-red-600 text-white px-4 py-2 rounded w-full mt-4"
-      >
-        Continue with Google
-      </button>
+          <button
+            onClick={handleGoogleLogin}
+            className="bg-red-600 text-white px-4 py-2 rounded w-full mt-4"
+          >
+            Continue with Google
+          </button>
 
-      <p className="mt-4 text-sm text-center">
-        {isLogin ? 'New here?' : 'Already have an account?'}{' '}
-        <button onClick={() => setIsLogin(!isLogin)} className="text-blue-600 underline">
-          {isLogin ? 'Create an account' : 'Login instead'}
-        </button>
-      </p>
+          <p className="mt-4 text-sm text-center">
+            {isLogin ? 'New here?' : 'Already have an account?'}{' '}
+            <button onClick={() => setIsLogin(!isLogin)} className="text-blue-600 underline">
+              {isLogin ? 'Create an account' : 'Login instead'}
+            </button>
+          </p>
+        </div>
+      </div>
     </div>
   );
 }
