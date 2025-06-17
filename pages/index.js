@@ -5,6 +5,7 @@ import { collection, addDoc, getFirestore } from 'firebase/firestore';
 import { app } from '../firebase';
 import Navbar from '../components/Navbar';
 
+
 export default function Home() {
   const router = useRouter();
   const auth = getAuth(app);
