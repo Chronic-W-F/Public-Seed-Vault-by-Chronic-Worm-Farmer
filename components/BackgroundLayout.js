@@ -25,8 +25,21 @@ export default function BackgroundLayout({ children }) {
         }}
       >
         <div style={{ width: '100%', maxWidth: '1024px' }}>
-          {children}
-        </div>
+  <h1 style={{
+    fontSize: '2.5rem',
+    fontWeight: '900',
+    letterSpacing: '0.05em',
+    fontFamily: "'Oswald', sans-serif",
+    marginBottom: '1.5rem',
+    textAlign: 'center',
+    color: '#1a1a1a',
+    textTransform: 'uppercase',
+  }}>
+    Chronic Seed Vault
+  </h1>
+  {children}
+</div>
+
       </div>
     </div>
   );
