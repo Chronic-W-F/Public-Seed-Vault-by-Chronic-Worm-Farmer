@@ -41,9 +41,9 @@ export default function LoginPage() {
       className="min-h-screen bg-cover bg-center bg-no-repeat flex items-center justify-center"
       style={{ backgroundImage: "url('/publicvault-bg.png')" }}
     >
-      <div className="bg-white/80 backdrop-blur-sm p-6 rounded-xl shadow-xl max-w-md w-full mx-4">
-        <h1 className="text-xl font-bold mb-6 text-center">
-          {isLogin ? 'Login to Your Vault' : 'Create an Account'}
+      <div className="bg-white/80 backdrop-blur-md p-6 rounded-xl shadow-xl max-w-md w-full mx-4">
+        <h1 className="text-2xl font-bold mb-6 text-center">
+          {isLogin ? '🔐 Login to Your Vault' : '📝 Create an Account'}
         </h1>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -82,7 +82,6 @@ export default function LoginPage() {
           </button>
         </p>
 
-        {/* 🔥 New Donation + Save Instructions */}
         <div className="mt-6 p-4 bg-gray-100 rounded-lg text-sm text-gray-800">
           <h2 className="font-semibold text-base mb-2">📲 Save to Your Home Screen</h2>
           <ul className="list-disc list-inside mb-3 space-y-1">
