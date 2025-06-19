@@ -1,148 +1,94 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
-import { getAuth, onAuthStateChanged } from 'firebase/auth';
-import { collection, addDoc, getFirestore } from 'firebase/firestore';
+import { getAuth, onAuthStateChanged, signOut } from 'firebase/auth';
+import { getFirestore, collection, query, where, getDocs } from 'firebase/firestore';
 import { app } from '../firebase';
 import Navbar from '../components/Navbar';
 
-export default function Home() {
-  const router = useRouter();
+export default function Dashboard() {
   const auth = getAuth(app);
   const db = getFirestore(app);
+  const router = useRouter();
 
   const [user, setUser] = useState(null);
-  const [form, setForm] = useState({
-    breeder: '',
-    strain: '',
-    type: '',
-    sex: '',
-    notes: '',
-  });
+  const [breederCount, setBreederCount] = useState(0);
+  const [strainCount, setStrainCount] = useState(0);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
         setUser(firebaseUser);
+        const q = query(collection(db, 'publicSeeds'), where('userId', '==', firebaseUser.uid));
+        const snapshot = await getDocs(q);
+        const seeds = snapshot.docs.map(doc => doc.data());
+
+        const breeders = new Set(seeds.map(seed => seed.breeder.trim().toLowerCase()));
+        const strains = new Set(seeds.map(seed => seed.strain.trim().toLowerCase()));
+
+        setBreederCount(breeders.size);
+        setStrainCount(strains.size);
       } else {
         router.push('/login');
       }
     });
+
     return () => unsubscribe();
   }, []);
 
-  const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!user) return alert("You must be logged in to submit");
-
-    try {
-      await addDoc(collection(db, 'publicSeeds'), {
-        ...form,
-        userId: user.uid,
-        createdAt: new Date(),
-      });
-      setForm({
-        breeder: '',
-        strain: '',
-        type: '',
-        sex: '',
-        notes: '',
-      });
-      alert("Entry added!");
-    } catch (error) {
-      console.error("Error adding document:", error);
-      alert("Something went wrong. Please try again.");
-    }
+  const handleLogout = async () => {
+    await signOut(auth);
+    router.push('/login');
   };
 
   return (
-    <div className="min-h-screen bg-[url('/vault-bg.jpg')] bg-cover bg-center p-4">
+    <div className="min-h-screen bg-[url('/vault-bg.jpg')] bg-cover bg-center p-4 flex flex-col items-center">
       <Navbar />
 
-      <div className="max-w-3xl mx-auto bg-white/80 backdrop-blur-md p-6 rounded-lg shadow-lg mt-6">
-        <h1 className="text-4xl font-black text-center mb-2">CHRONIC SEED VAULT</h1>
-        <h2 className="text-xl font-semibold text-center mb-6">
-          🌱 Public Seed Vault – Add Seeds
-        </h2>
+      <div className="bg-white/80 backdrop-blur-md rounded-lg shadow-lg p-6 w-full max-w-3xl mt-6 text-center">
+        <h1 className="text-4xl font-black mb-2">CHRONIC SEED VAULT</h1>
+        <p className="text-lg font-medium mb-6">Secure your genetics. Search your stash.</p>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="flex justify-around mb-6 text-left flex-wrap gap-6">
           <div>
-            <label className="block font-semibold mb-1">Breeder</label>
-            <input
-              type="text"
-              name="breeder"
-              value={form.breeder}
-              onChange={handleChange}
-              required
-              className="w-full p-2 border rounded"
-            />
+            <p className="text-xl font-bold">🧪 {breederCount}</p>
+            <p className="text-sm text-gray-700">Unique Breeders</p>
           </div>
-
           <div>
-            <label className="block font-semibold mb-1">Strain</label>
-            <input
-              type="text"
-              name="strain"
-              value={form.strain}
-              onChange={handleChange}
-              required
-              className="w-full p-2 border rounded"
-            />
+            <p className="text-xl font-bold">🧬 {strainCount}</p>
+            <p className="text-sm text-gray-700">Unique Strains</p>
           </div>
+        </div>
 
-          <div className="flex gap-4">
-            <div className="w-1/2">
-              <label className="block font-semibold mb-1">Type</label>
-              <select
-                name="type"
-                value={form.type}
-                onChange={handleChange}
-                required
-                className="w-full p-2 border rounded"
-              >
-                <option value="">Select Type</option>
-                <option value="Photo">Photo</option>
-                <option value="Auto">Auto</option>
-              </select>
-            </div>
-
-            <div className="w-1/2">
-              <label className="block font-semibold mb-1">Sex</label>
-              <select
-                name="sex"
-                value={form.sex}
-                onChange={handleChange}
-                required
-                className="w-full p-2 border rounded"
-              >
-                <option value="">Select Sex</option>
-                <option value="Reg">Reg</option>
-                <option value="Fem">Fem</option>
-              </select>
-            </div>
-          </div>
-
-          <div>
-            <label className="block font-semibold mb-1">Notes</label>
-            <textarea
-              name="notes"
-              value={form.notes}
-              onChange={handleChange}
-              rows={3}
-              className="w-full p-2 border rounded"
-            />
-          </div>
-
+        <div className="flex justify-center gap-4 mb-6">
           <button
-            type="submit"
-            className="w-full bg-black text-white py-2 px-4 rounded hover:bg-gray-800 transition"
+            onClick={() => router.push('/entry')}
+            className="px-4 py-2 bg-black text-white rounded hover:bg-gray-800"
           >
-            Submit Entry
+            ➕ Add Seeds
           </button>
-        </form>
+          <button
+            onClick={() => router.push('/search')}
+            className="px-4 py-2 bg-white border rounded hover:bg-gray-100"
+          >
+            🔍 Search Vault
+          </button>
+          <button
+            onClick={handleLogout}
+            className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+          >
+            🚪 Logout
+          </button>
+        </div>
+
+        <div className="bg-white/70 p-4 rounded text-left text-sm">
+          <h2 className="text-md font-bold mb-2">💡 Vault Tips</h2>
+          <ul className="list-disc list-inside space-y-1 text-gray-800">
+            <li>You can search by strain, breeder, type, sex, or notes.</li>
+            <li>Use “Unknown” for breeder if not sure — don’t skip it.</li>
+            <li>Type = Photo or Auto. Sex = Reg or Fem.</li>
+            <li>Log packs as you get them so your vault stays organized.</li>
+          </ul>
+        </div>
       </div>
     </div>
   );
