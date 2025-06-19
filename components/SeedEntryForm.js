@@ -3,8 +3,6 @@ import {
   collection,
   getDocs,
   addDoc,
-  deleteDoc,
-  doc,
   query,
   where,
 } from 'firebase/firestore';
@@ -18,128 +16,127 @@ export default function SeedEntryForm({ user }) {
     type: '',
     sex: '',
     notes: '',
-    packs: 1,
+    packs: '1',
   });
-
-  const fetchSeeds = async () => {
-    const q = query(collection(db, 'publicSeeds'), where('uid', '==', user.uid));
-    const snapshot = await getDocs(q);
-    const data = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
-    setSeeds(data);
-  };
+  const [success, setSuccess] = useState(false);
 
   useEffect(() => {
-    if (user) fetchSeeds();
+    const loadSeeds = async () => {
+      const q = query(collection(db, 'publicSeeds'), where('uid', '==', user.uid));
+      const snapshot = await getDocs(q);
+      const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      setSeeds(data);
+    };
+    if (user) loadSeeds();
   }, [user]);
 
   const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    setForm(prev => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const newEntry = { ...form, uid: user.uid };
-    await addDoc(collection(db, 'publicSeeds'), newEntry);
-    setForm({
-      breeder: '',
-      strain: '',
-      type: '',
-      sex: '',
-      notes: '',
-      packs: 1,
-    });
-    fetchSeeds();
-  };
 
-  const handleDelete = async (id) => {
-    await deleteDoc(doc(db, 'publicSeeds', id));
-    fetchSeeds();
+    const trimmedForm = {
+      ...form,
+      breeder: form.breeder.trim(),
+      strain: form.strain.trim(),
+      notes: form.notes.trim(),
+      uid: user.uid,
+    };
+
+    try {
+      await addDoc(collection(db, 'publicSeeds'), trimmedForm);
+
+      // Clear form + show success
+      setForm({
+        breeder: '',
+        strain: '',
+        type: '',
+        sex: '',
+        notes: '',
+        packs: '1',
+      });
+      setSuccess(true);
+      setTimeout(() => setSuccess(false), 3000);
+    } catch (err) {
+      alert('Error adding seed: ' + err.message);
+    }
   };
 
   return (
-    <div className="p-6 max-w-4xl mx-auto">
-      {/* Header removed for clean embed under parent layout */}
-
-      <form onSubmit={handleSubmit} className="space-y-4 mb-6">
-        <input
-          name="breeder"
-          placeholder="Breeder"
-          value={form.breeder}
-          onChange={handleChange}
-          className="border p-2 rounded w-full"
-          required
-        />
-        <input
-          name="strain"
-          placeholder="Strain"
-          value={form.strain}
-          onChange={handleChange}
-          className="border p-2 rounded w-full"
-          required
-        />
+    <form onSubmit={handleSubmit} className="w-full max-w-md space-y-4">
+      <input
+        type="text"
+        name="breeder"
+        value={form.breeder}
+        onChange={handleChange}
+        placeholder="Breeder"
+        className="w-full p-2 rounded border border-gray-300"
+        required
+      />
+      <input
+        type="text"
+        name="strain"
+        value={form.strain}
+        onChange={handleChange}
+        placeholder="Strain"
+        className="w-full p-2 rounded border border-gray-300"
+        required
+      />
+      <div className="flex space-x-2">
         <select
           name="type"
           value={form.type}
           onChange={handleChange}
-          className="border p-2 rounded w-full"
+          required
+          className="flex-1 p-2 rounded border border-gray-300"
         >
           <option value="">Select Type</option>
-          <option value="photo">Photoperiod</option>
-          <option value="auto">Autoflower</option>
+          <option value="photo">Photo</option>
+          <option value="auto">Auto</option>
         </select>
         <select
           name="sex"
           value={form.sex}
           onChange={handleChange}
-          className="border p-2 rounded w-full"
+          required
+          className="flex-1 p-2 rounded border border-gray-300"
         >
           <option value="">Select Sex</option>
-          <option value="reg">Regular</option>
-          <option value="fem">Feminized</option>
+          <option value="reg">Reg</option>
+          <option value="fem">Fem</option>
         </select>
-        <input
-          name="packs"
-          type="number"
-          min="1"
-          value={form.packs}
-          onChange={handleChange}
-          className="border p-2 rounded w-full"
-        />
-        <textarea
-          name="notes"
-          placeholder="Notes (optional)"
-          value={form.notes}
-          onChange={handleChange}
-          className="border p-2 rounded w-full"
-          rows={3}
-        />
-        <button
-          type="submit"
-          className="bg-green-600 text-white px-4 py-2 rounded"
-        >
-          ➕ Add Entry
-        </button>
-      </form>
-
-      <div className="grid gap-4">
-        {seeds.map((seed) => (
-          <div key={seed.id} className="border p-4 rounded shadow">
-            <h2 className="font-semibold text-lg">
-              {seed.breeder} – {seed.strain}
-            </h2>
-            <p className="text-sm text-gray-600">
-              {seed.type} / {seed.sex} – {seed.packs} pack(s)
-            </p>
-            <p className="text-sm mt-1">{seed.notes}</p>
-            <button
-              onClick={() => handleDelete(seed.id)}
-              className="mt-2 text-red-600 text-sm underline hover:text-red-800"
-            >
-              🗑️ Delete
-            </button>
-          </div>
-        ))}
       </div>
-    </div>
+      <textarea
+        name="notes"
+        value={form.notes}
+        onChange={handleChange}
+        placeholder="Notes (optional)"
+        className="w-full p-2 rounded border border-gray-300"
+      />
+      <input
+        type="number"
+        name="packs"
+        value={form.packs}
+        onChange={handleChange}
+        className="w-full p-2 rounded border border-gray-300"
+        min="1"
+        required
+      />
+      <button
+        type="submit"
+        className="w-full bg-black text-white py-2 rounded hover:bg-gray-800"
+      >
+        ➕ Add Entry
+      </button>
+
+      {success && (
+        <div className="mt-4 text-center text-green-700 font-bold text-xl">
+          🔥 Locked In 🔥
+        </div>
+      )}
+    </form>
   );
 }
