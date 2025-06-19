@@ -35,11 +35,6 @@ export default function Dashboard() {
     return () => unsubscribe();
   }, []);
 
-  const handleLogout = async () => {
-    await signOut(auth);
-    router.push('/login');
-  };
-
   return (
     <div className="min-h-screen bg-[url('/vault-bg.jpg')] bg-cover bg-center p-4 flex flex-col items-center">
       <Navbar />
@@ -57,27 +52,6 @@ export default function Dashboard() {
             <p className="text-xl font-bold">🧬 {strainCount}</p>
             <p className="text-sm text-gray-700">Unique Strains</p>
           </div>
-        </div>
-
-        <div className="flex justify-center gap-4 mb-6">
-          <button
-            onClick={() => router.push('/entry')}
-            className="px-4 py-2 bg-black text-white rounded hover:bg-gray-800"
-          >
-            ➕ Add Seeds
-          </button>
-          <button
-            onClick={() => router.push('/search')}
-            className="px-4 py-2 bg-white border rounded hover:bg-gray-100"
-          >
-            🔍 Search Vault
-          </button>
-          <button
-            onClick={handleLogout}
-            className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
-          >
-            🚪 Logout
-          </button>
         </div>
 
         <div className="bg-white/70 p-4 rounded text-left text-sm">
