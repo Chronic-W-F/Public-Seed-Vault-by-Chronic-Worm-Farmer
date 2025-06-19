@@ -81,6 +81,20 @@ export default function LoginPage() {
             {isLogin ? 'Create an account' : 'Login instead'}
           </button>
         </p>
+
+        {/* 🔥 New Donation + Save Instructions */}
+        <div className="mt-6 p-4 bg-gray-100 rounded-lg text-sm text-gray-800">
+          <h2 className="font-semibold text-base mb-2">📲 Save to Your Home Screen</h2>
+          <ul className="list-disc list-inside mb-3 space-y-1">
+            <li><strong>Android:</strong> Tap the <strong>⋮</strong> menu in Chrome and select <em>“Add to Home screen.”</em></li>
+            <li><strong>iPhone:</strong> Tap the <strong>Share</strong> icon in Safari, then choose <em>“Add to Home Screen.”</em></li>
+          </ul>
+
+          <h3 className="font-semibold mb-1">💚 Donations Welcome</h3>
+          <p>If you're enjoying the Chronic Seed Vault and want to support future development:</p>
+          <p className="text-green-600 font-bold mt-1">Cash App: $DaveVandergriff</p>
+          <p className="italic text-xs">(Please put “dev” in the comment section)</p>
+        </div>
       </div>
     </div>
   );
