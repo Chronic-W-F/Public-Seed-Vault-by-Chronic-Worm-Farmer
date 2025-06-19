@@ -42,17 +42,22 @@ export default function HomePage() {
     return () => unsubscribe();
   }, []);
 
-  // 🧠 Use Set() to get unique counts
+  // ✅ Unique counts using Set()
   const uniqueBreeders = new Set(seeds.map(seed => seed.breeder));
   const uniqueStrains = new Set(seeds.map(seed => seed.strain));
-
   const breederCount = uniqueBreeders.size;
   const strainCount = uniqueStrains.size;
 
-  // 🛠️ Debug (Optional)
-  console.log("Breeders:", [...uniqueBreeders]);
-  console.log("Strains:", [...uniqueStrains]);
-  console.log("All seeds:", seeds);
+  // ✅ Type counts
+  const photoCount = seeds.filter(seed => seed.type.toLowerCase() === 'photo').length;
+  const autoCount = seeds.filter(seed => seed.type.toLowerCase() === 'auto').length;
+
+  // 🛠️ Optional debug
+  console.log("🧪 Breeders:", [...uniqueBreeders]);
+  console.log("🧬 Strains:", [...uniqueStrains]);
+  console.log("🌞 Photo count:", photoCount);
+  console.log("⚡ Auto count:", autoCount);
+  console.log("📦 Full seed list:", seeds);
 
   return (
     <div className="min-h-screen bg-[url('/vault-bg.jpg')] bg-cover bg-center p-4 flex flex-col items-center">
@@ -62,8 +67,11 @@ export default function HomePage() {
 
         <p className="text-lg mb-4">Secure your genetics. Search your stash.</p>
 
+        {/* 🌱 Stat Block - FINAL ICON SET */}
         <p className="text-xl mb-1">🧪 {breederCount} Unique Breeders</p>
-        <p className="text-xl mb-4">🌈 {strainCount} Unique Strains</p>
+        <p className="text-xl mb-1">🧬 {strainCount} Unique Strains</p>
+        <p className="text-xl mb-1">🌞 {photoCount} Photoperiods</p>
+        <p className="text-xl mb-4">⚡ {autoCount} Autoflowers</p>
 
         <h2 className="text-2xl font-semibold mb-2">💡 Vault Tips</h2>
         <ul className="text-left list-disc list-inside text-gray-800">
