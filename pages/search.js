@@ -1,228 +1,88 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
-import { getAuth, signOut, onAuthStateChanged } from 'firebase/auth';
+import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import {
   collection,
   getDocs,
   getFirestore,
   query,
   where,
-  doc,
-  deleteDoc,
-  updateDoc
 } from 'firebase/firestore';
 import { app } from '../firebase';
+import Navbar from '../components/Navbar';
 
 export default function SearchPage() {
-  const router = useRouter();
   const auth = getAuth(app);
   const db = getFirestore(app);
+  const router = useRouter();
+
   const [user, setUser] = useState(null);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [search, setSearch] = useState('');
   const [results, setResults] = useState([]);
-  const [editEntryId, setEditEntryId] = useState(null);
-  const [editForm, setEditForm] = useState({
-    breeder: '',
-    strain: '',
-    type: '',
-    sex: '',
-    notes: '',
-  });
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
         setUser(firebaseUser);
+        fetchSeeds(firebaseUser.uid);
       } else {
         router.push('/login');
       }
     });
+
     return () => unsubscribe();
-  }, [auth, router]);
+  }, []);
 
-  useEffect(() => {
-    if (user && searchTerm.trim().length > 0) {
-      handleSearch();
-    } else {
-      setResults([]);
-    }
-  }, [searchTerm]);
-
-  const handleLogout = async () => {
-    try {
-      await signOut(auth);
-      router.push('/login');
-    } catch (error) {
-      console.error('Logout error:', error);
-    }
-  };
-
-  const handleSearch = async () => {
-    if (!user || !searchTerm) return;
-
-    const q = query(
-      collection(db, 'publicSeeds'),
-      where('userId', '==', user.uid)
-    );
-
+  const fetchSeeds = async (uid) => {
+    const q = query(collection(db, 'publicSeeds'), where('uid', '==', uid));
     const snapshot = await getDocs(q);
-    const term = searchTerm.toLowerCase();
-
-    const filtered = snapshot.docs
-      .map(doc => ({ id: doc.id, ...doc.data() }))
-      .filter(entry =>
-        entry.breeder?.toLowerCase().includes(term) ||
-        entry.strain?.toLowerCase().includes(term) ||
-        entry.type?.toLowerCase().includes(term) ||
-        entry.sex?.toLowerCase().includes(term) ||
-        entry.notes?.toLowerCase().includes(term)
-      );
-
-    console.log("Current user ID:", user?.uid);
-    console.log("Fetched documents:", snapshot.docs.map(doc => doc.data()));
-
-    setResults(filtered);
+    const data = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+    setResults(data);
   };
 
-  const handleDelete = async (id) => {
-    await deleteDoc(doc(db, 'publicSeeds', id));
-    setResults(results.filter(entry => entry.id !== id));
-  };
-
-  const handleEditClick = (entry) => {
-    setEditEntryId(entry.id);
-    setEditForm({
-      breeder: entry.breeder,
-      strain: entry.strain,
-      type: entry.type,
-      sex: entry.sex,
-      notes: entry.notes,
-    });
-  };
-
-  const handleEditChange = (e) => {
-    setEditForm({ ...editForm, [e.target.name]: e.target.value });
-  };
-
-  const handleEditSave = async () => {
-    await updateDoc(doc(db, 'publicSeeds', editEntryId), editForm);
-    setEditEntryId(null);
-    handleSearch(); // Refresh results
-  };
+  const filteredResults = results.filter((seed) =>
+    [seed.breeder, seed.strain, seed.type, seed.sex, seed.notes]
+      .join(' ')
+      .toLowerCase()
+      .includes(search.toLowerCase())
+  );
 
   return (
-    <div className="min-h-screen bg-gray-100 p-6 font-sans">
-      <div className="flex justify-between items-center mb-4">
-        <h1 className="text-2xl font-bold">Search Your Seed Vault</h1>
-      </div>
+    <div className="min-h-screen bg-[url('/vault-bg.jpg')] bg-cover bg-center p-4">
+      <Navbar />
 
-      <div className="flex items-center space-x-4 mb-4">
-        <button onClick={handleLogout} className="text-red-500 underline text-sm">
-          Logout
-        </button>
-        <button
-          onClick={() => router.push('/')}
-          className="text-blue-500 underline text-sm"
-        >
-          Back to Data Entry
-        </button>
-      </div>
+      <div className="text-center max-w-3xl mx-auto mt-6">
+        <h1 className="text-4xl font-black mb-2">CHRONIC SEED VAULT</h1>
+        <h2 className="text-xl font-semibold mb-4">Search Your Seed Vault</h2>
 
-      <input
-        type="text"
-        placeholder="Search by breeder, strain, type, sex, or notes"
-        value={searchTerm}
-        onChange={(e) => setSearchTerm(e.target.value)}
-        className="w-full p-2 border border-gray-300 rounded mb-4"
-      />
+        <input
+          type="text"
+          placeholder="Search by breeder, strain, type, etc."
+          className="border p-2 rounded w-full max-w-md"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        />
 
-      <div className="mt-6">
-        {results.length === 0 && searchTerm && <p>No results found.</p>}
-        {results.map((entry) => (
-          <div key={entry.id} className="mb-4 p-4 bg-white rounded shadow">
-            {editEntryId === entry.id ? (
-              <>
-                <input
-                  name="breeder"
-                  value={editForm.breeder}
-                  onChange={handleEditChange}
-                  className="block w-full mb-2 p-1 border rounded"
-                  placeholder="Breeder"
-                />
-                <input
-                  name="strain"
-                  value={editForm.strain}
-                  onChange={handleEditChange}
-                  className="block w-full mb-2 p-1 border rounded"
-                  placeholder="Strain"
-                />
-                <select
-                  name="type"
-                  value={editForm.type}
-                  onChange={handleEditChange}
-                  className="block w-full mb-2 p-1 border rounded"
-                >
-                  <option value="">Select Type</option>
-                  <option value="Photo">Photo</option>
-                  <option value="Auto">Auto</option>
-                </select>
-                <select
-                  name="sex"
-                  value={editForm.sex}
-                  onChange={handleEditChange}
-                  className="block w-full mb-2 p-1 border rounded"
-                >
-                  <option value="">Select Sex</option>
-                  <option value="Reg">Reg</option>
-                  <option value="Fem">Fem</option>
-                </select>
-                <textarea
-                  name="notes"
-                  value={editForm.notes}
-                  onChange={handleEditChange}
-                  className="block w-full mb-2 p-1 border rounded"
-                  placeholder="Notes"
-                />
-                <div className="flex space-x-2">
-                  <button
-                    onClick={handleEditSave}
-                    className="bg-blue-600 text-white px-3 py-1 rounded"
-                  >
-                    Save
-                  </button>
-                  <button
-                    onClick={() => setEditEntryId(null)}
-                    className="text-gray-600 underline"
-                  >
-                    Cancel
-                  </button>
-                </div>
-              </>
-            ) : (
-              <>
-                <p><strong>Breeder:</strong> {entry.breeder}</p>
-                <p><strong>Strain:</strong> {entry.strain}</p>
-                <p><strong>Type:</strong> {entry.type}</p>
-                <p><strong>Sex:</strong> {entry.sex}</p>
-                <p><strong>Notes:</strong> {entry.notes}</p>
-                <div className="flex space-x-4 mt-2">
-                  <button
-                    onClick={() => handleEditClick(entry)}
-                    className="text-blue-600 underline text-sm"
-                  >
-                    Edit
-                  </button>
-                  <button
-                    onClick={() => handleDelete(entry.id)}
-                    className="text-red-600 underline text-sm"
-                  >
-                    Delete
-                  </button>
-                </div>
-              </>
-            )}
-          </div>
-        ))}
+        <div className="mt-6 grid gap-4">
+          {filteredResults.length > 0 ? (
+            filteredResults.map((seed) => (
+              <div
+                key={seed.id}
+                className="border p-4 rounded shadow bg-white/90"
+              >
+                <h2 className="font-semibold text-lg">
+                  {seed.breeder} – {seed.strain}
+                </h2>
+                <p className="text-sm text-gray-600">
+                  {seed.type} / {seed.sex} – {seed.packs} pack(s)
+                </p>
+                <p className="text-sm mt-1">{seed.notes}</p>
+              </div>
+            ))
+          ) : (
+            <p className="text-gray-700 mt-4">No matching results found.</p>
+          )}
+        </div>
       </div>
     </div>
   );
