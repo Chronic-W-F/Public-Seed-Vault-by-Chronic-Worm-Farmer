@@ -1,18 +1,23 @@
+// pages/search.js
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
-import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import {
-  collection,
-  getDocs,
+  getAuth,
+  onAuthStateChanged,
+} from 'firebase/auth';
+import {
   getFirestore,
+  collection,
   query,
   where,
-  deleteDoc,
+  getDocs,
   doc,
-  updateDoc,
+  deleteDoc,
 } from 'firebase/firestore';
 import { app } from '../firebase';
 import Navbar from '../components/Navbar';
+import { Pencil, Trash2 } from 'lucide-react';
+import Link from 'next/link';
 
 export default function SearchPage() {
   const auth = getAuth(app);
@@ -21,22 +26,21 @@ export default function SearchPage() {
 
   const [user, setUser] = useState(null);
   const [seeds, setSeeds] = useState([]);
+  const [filteredSeeds, setFilteredSeeds] = useState([]);
   const [search, setSearch] = useState('');
-  const [editingId, setEditingId] = useState(null);
-  const [editForm, setEditForm] = useState({
-    breeder: '',
-    strain: '',
-    type: '',
-    sex: '',
-    packs: 1,
-    notes: '',
-  });
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
         setUser(firebaseUser);
-        fetchSeeds(firebaseUser.uid);
+        const q = query(
+          collection(db, 'publicSeeds'),
+          where('uid', '==', firebaseUser.uid)
+        );
+        const snapshot = await getDocs(q);
+        const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        setSeeds(data);
+        setFilteredSeeds(data);
       } else {
         router.push('/login');
       }
@@ -45,153 +49,97 @@ export default function SearchPage() {
     return () => unsubscribe();
   }, []);
 
-  const fetchSeeds = async (uid) => {
-    const q = query(collection(db, 'publicSeeds'), where('uid', '==', uid));
-    const snapshot = await getDocs(q);
-    const data = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
-    setSeeds(data);
-  };
+  useEffect(() => {
+    const lower = search.toLowerCase();
+    setFilteredSeeds(
+      seeds.filter(
+        (s) =>
+          s.breeder.toLowerCase().includes(lower) ||
+          s.strain.toLowerCase().includes(lower) ||
+          s.type.toLowerCase().includes(lower) ||
+          s.sex.toLowerCase().includes(lower) ||
+          (s.notes && s.notes.toLowerCase().includes(lower))
+      )
+    );
+  }, [search, seeds]);
 
   const handleDelete = async (id) => {
+    const confirmed = confirm('Are you sure you want to delete this entry?');
+    if (!confirmed) return;
     await deleteDoc(doc(db, 'publicSeeds', id));
-    fetchSeeds(user.uid);
+    setSeeds(seeds.filter((s) => s.id !== id));
   };
-
-  const handleEditClick = (seed) => {
-    setEditingId(seed.id);
-    setEditForm({
-      breeder: seed.breeder,
-      strain: seed.strain,
-      type: seed.type,
-      sex: seed.sex,
-      packs: seed.packs,
-      notes: seed.notes,
-    });
-  };
-
-  const handleEditChange = (e) => {
-    setEditForm({ ...editForm, [e.target.name]: e.target.value });
-  };
-
-  const handleEditSave = async () => {
-    await updateDoc(doc(db, 'publicSeeds', editingId), editForm);
-    setEditingId(null);
-    fetchSeeds(user.uid);
-  };
-
-  const filteredSeeds = seeds.filter((seed) =>
-    [seed.breeder, seed.strain, seed.type, seed.sex, seed.notes]
-      .join(' ')
-      .toLowerCase()
-      .includes(search.toLowerCase())
-  );
 
   return (
-    <div className="min-h-screen bg-[url('/vault-bg.jpg')] bg-cover bg-center p-4">
-      <Navbar />
-
-      <div className="text-center max-w-3xl mx-auto mt-6">
+    <div className="min-h-screen bg-[url('/vault-bg.jpg')] bg-cover bg-center p-4 flex flex-col items-center">
+      <Navbar currentPage="search" />
+      <div className="bg-white/80 backdrop-blur-md rounded-lg shadow-lg p-6 w-full max-w-3xl mt-6 text-center">
         <h1 className="text-4xl font-black mb-2">CHRONIC SEED VAULT</h1>
-        <h2 className="text-xl font-semibold mb-4">Search Your Seed Vault</h2>
+        <h2 className="text-2xl font-bold mb-4">Search Your Seed Vault</h2>
 
         <input
-          type="text"
-          placeholder="Search by breeder, strain, type, etc."
-          className="border p-2 rounded w-full max-w-md"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
+          placeholder="Search by breeder, strain, type, sex, or notes..."
+          className="mb-6 w-full p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500"
         />
 
-        <div className="mt-6 grid gap-4">
-          {filteredSeeds.length > 0 ? (
-            filteredSeeds.map((seed) => (
-              <div key={seed.id} className="border p-4 rounded shadow bg-white/90 text-left">
-                {editingId === seed.id ? (
-                  <>
-                    <input
-                      name="breeder"
-                      value={editForm.breeder}
-                      onChange={handleEditChange}
-                      className="border p-1 rounded w-full mb-2"
-                    />
-                    <input
-                      name="strain"
-                      value={editForm.strain}
-                      onChange={handleEditChange}
-                      className="border p-1 rounded w-full mb-2"
-                    />
-                    <input
-                      name="type"
-                      value={editForm.type}
-                      onChange={handleEditChange}
-                      className="border p-1 rounded w-full mb-2"
-                    />
-                    <input
-                      name="sex"
-                      value={editForm.sex}
-                      onChange={handleEditChange}
-                      className="border p-1 rounded w-full mb-2"
-                    />
-                    <input
-                      name="packs"
-                      type="number"
-                      min="1"
-                      value={editForm.packs}
-                      onChange={handleEditChange}
-                      className="border p-1 rounded w-full mb-2"
-                    />
-                    <textarea
-                      name="notes"
-                      value={editForm.notes}
-                      onChange={handleEditChange}
-                      className="border p-1 rounded w-full mb-2"
-                    />
-                    <div className="flex justify-end gap-2">
-                      <button
-                        onClick={handleEditSave}
-                        className="text-green-600 underline text-sm"
-                      >
-                        ✅ Save
-                      </button>
-                      <button
-                        onClick={() => setEditingId(null)}
-                        className="text-gray-600 underline text-sm"
-                      >
-                        ❌ Cancel
-                      </button>
-                    </div>
-                  </>
-                ) : (
-                  <>
-                    <h2 className="font-semibold text-lg">
-                      {seed.breeder} – {seed.strain}
-                    </h2>
-                    <p className="text-sm text-gray-600">
-                      {seed.type} / {seed.sex} – {seed.packs} pack(s)
-                    </p>
-                    <p className="text-sm mt-1">{seed.notes}</p>
-                    <div className="flex gap-4 mt-2 text-sm">
-                      <button
-                        onClick={() => handleEditClick(seed)}
-                        className="text-blue-600 underline"
-                      >
-                        📝 Edit
-                      </button>
-                      <button
-                        onClick={() => handleDelete(seed.id)}
-                        className="text-red-600 underline"
-                      >
-                        🗑️ Delete
-                      </button>
-                    </div>
-                  </>
-                )}
-              </div>
-            ))
-          ) : (
-            <p className="text-gray-700 mt-4">No matching results found.</p>
-          )}
+        <div className="flex justify-between mb-4">
+          <Link href="/">
+            <button className="px-4 py-2 bg-green-600 text-white font-semibold rounded hover:bg-green-700">
+              Back to Homepage
+            </button>
+          </Link>
+          <Link href="/entry">
+            <button className="px-4 py-2 bg-blue-600 text-white font-semibold rounded hover:bg-blue-700">
+              Seed Entry
+            </button>
+          </Link>
         </div>
+
+        {filteredSeeds.length === 0 ? (
+          <p className="text-gray-700">No seeds match your search.</p>
+        ) : (
+          <ul className="space-y-4">
+            {filteredSeeds.map((seed) => (
+              <li
+                key={seed.id}
+                className="bg-white rounded-lg shadow border border-gray-300 p-4 text-left relative"
+              >
+                <p>
+                  <strong>Breeder:</strong> {seed.breeder}
+                </p>
+                <p>
+                  <strong>Strain:</strong> {seed.strain}
+                </p>
+                <p>
+                  <strong>Type:</strong> {seed.type}
+                </p>
+                <p>
+                  <strong>Sex:</strong> {seed.sex}
+                </p>
+                {seed.notes && (
+                  <p>
+                    <strong>Notes:</strong> {seed.notes}
+                  </p>
+                )}
+                <p>
+                  <strong>Packs:</strong> {seed.packs}
+                </p>
+
+                <div className="absolute top-2 right-2 flex space-x-3">
+                  <Link href={`/edit/${seed.id}`}>
+                    <Pencil className="h-5 w-5 text-blue-600 hover:text-blue-800 cursor-pointer" />
+                  </Link>
+                  <Trash2
+                    onClick={() => handleDelete(seed.id)}
+                    className="h-5 w-5 text-red-600 hover:text-red-800 cursor-pointer"
+                  />
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
     </div>
   );
