@@ -16,7 +16,6 @@ export default function SeedEntryForm({ user }) {
     type: '',
     sex: '',
     notes: '',
-    packs: '1',
   });
   const [success, setSuccess] = useState(false);
 
@@ -38,30 +37,31 @@ export default function SeedEntryForm({ user }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const trimmedForm = {
-      ...form,
+    // Safety trim + assign UID
+    const payload = {
       breeder: form.breeder.trim(),
       strain: form.strain.trim(),
+      type: form.type,
+      sex: form.sex,
       notes: form.notes.trim(),
       uid: user.uid,
     };
 
     try {
-      await addDoc(collection(db, 'publicSeeds'), trimmedForm);
+      await addDoc(collection(db, 'publicSeeds'), payload);
 
-      // Clear form + show success
+      // Reset form + fire message
       setForm({
         breeder: '',
         strain: '',
         type: '',
         sex: '',
         notes: '',
-        packs: '1',
       });
       setSuccess(true);
       setTimeout(() => setSuccess(false), 3000);
     } catch (err) {
-      alert('Error adding seed: ' + err.message);
+      alert('❌ Failed to add seed: ' + err.message);
     }
   };
 
@@ -116,15 +116,7 @@ export default function SeedEntryForm({ user }) {
         placeholder="Notes (optional)"
         className="w-full p-2 rounded border border-gray-300"
       />
-      <input
-        type="number"
-        name="packs"
-        value={form.packs}
-        onChange={handleChange}
-        className="w-full p-2 rounded border border-gray-300"
-        min="1"
-        required
-      />
+
       <button
         type="submit"
         className="w-full bg-black text-white py-2 rounded hover:bg-gray-800"
