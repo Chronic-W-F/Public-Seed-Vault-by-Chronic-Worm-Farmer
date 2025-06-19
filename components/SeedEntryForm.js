@@ -58,7 +58,7 @@ export default function SeedEntryForm({ user }) {
 
   return (
     <div className="p-6 max-w-4xl mx-auto">
-      {/* Vault title already shown on page; no header needed here */}
+      {/* Header removed for clean embed under parent layout */}
 
       <form onSubmit={handleSubmit} className="space-y-4 mb-6">
         <input
