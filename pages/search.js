@@ -16,7 +16,6 @@ import {
 import { app } from '../firebase';
 import Navbar from '../components/Navbar';
 import SeedCard from '../components/SeedCard';
-import Link from 'next/link';
 
 export default function SearchPage() {
   const auth = getAuth(app);
@@ -79,19 +78,6 @@ export default function SearchPage() {
           placeholder="Search by breeder, strain, type, sex, or notes..."
           className="mb-6 w-full p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500"
         />
-
-        <div className="flex justify-between mb-4">
-          <Link href="/">
-            <button className="px-4 py-2 bg-green-600 text-white font-semibold rounded hover:bg-green-700">
-              Back to Homepage
-            </button>
-          </Link>
-          <Link href="/entry">
-            <button className="px-4 py-2 bg-blue-600 text-white font-semibold rounded hover:bg-blue-700">
-              Seed Entry
-            </button>
-          </Link>
-        </div>
 
         {filteredSeeds.length === 0 ? (
           <p className="text-gray-700">No seeds match your search.</p>
