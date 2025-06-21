@@ -1,4 +1,3 @@
-// pages/search.js
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import {
@@ -24,18 +23,16 @@ export default function SearchPage() {
   const db = getFirestore(app);
   const router = useRouter();
 
-  const [user, setUser] = useState(null);
   const [seeds, setSeeds] = useState([]);
   const [filteredSeeds, setFilteredSeeds] = useState([]);
   const [search, setSearch] = useState('');
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-      if (firebaseUser) {
-        setUser(firebaseUser);
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (user) {
         const q = query(
           collection(db, 'publicSeeds'),
-          where('uid', '==', firebaseUser.uid)
+          where('uid', '==', user.uid)
         );
         const snapshot = await getDocs(q);
         const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
@@ -45,7 +42,6 @@ export default function SearchPage() {
         router.push('/login');
       }
     });
-
     return () => unsubscribe();
   }, []);
 
