@@ -3,8 +3,8 @@ import Link from 'next/link';
 
 export default function SeedCard({ seed, onDelete }) {
   return (
-    <div className="bg-white/90 rounded-2xl shadow-lg border border-gray-300 p-4 w-full relative transition-all hover:shadow-xl">
-      <h3 className="text-xl font-bold mb-2 text-green-800">{seed.strain}</h3>
+    <div className="bg-white/90 rounded-2xl shadow-lg border border-gray-300 p-4 w-full relative transition hover:shadow-xl">
+      <h3 className="text-xl font-black mb-2 text-green-800">{seed.strain}</h3>
       <p className="text-gray-700"><strong>Breeder:</strong> {seed.breeder}</p>
       <p className="text-gray-700"><strong>Type:</strong> {seed.type}</p>
       <p className="text-gray-700"><strong>Sex:</strong> {seed.sex}</p>
