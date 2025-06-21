@@ -25,6 +25,7 @@ export default function SearchPage() {
   const [seeds, setSeeds] = useState([]);
   const [filteredSeeds, setFilteredSeeds] = useState([]);
   const [search, setSearch] = useState('');
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
@@ -65,6 +66,28 @@ export default function SearchPage() {
     setSeeds(seeds.filter((s) => s.id !== id));
   };
 
+  const handleDonateClick = () => {
+    const tag = '$DaveVandergriff';
+
+    // Copy to clipboard
+    navigator.clipboard.writeText(tag).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+
+    // Try opening Cash App
+    const deepLink = `cashapp://cash/${tag}`;
+    const webLink = `https://cash.app/${tag}`;
+
+    const timeout = setTimeout(() => {
+      window.open(webLink, '_blank');
+    }, 500);
+
+    window.location.href = deepLink;
+
+    window.addEventListener('blur', () => clearTimeout(timeout), { once: true });
+  };
+
   return (
     <div className="min-h-screen bg-[url('/vault-bg.jpg')] bg-cover bg-center p-4 flex flex-col items-center">
       <Navbar currentPage="search" />
@@ -82,11 +105,30 @@ export default function SearchPage() {
         {filteredSeeds.length === 0 ? (
           <p className="text-gray-700">No seeds match your search.</p>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-            {filteredSeeds.map((seed) => (
-              <SeedCard key={seed.id} seed={seed} onDelete={handleDelete} />
-            ))}
-          </div>
+          <>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+              {filteredSeeds.map((seed) => (
+                <SeedCard key={seed.id} seed={seed} onDelete={handleDelete} />
+              ))}
+            </div>
+
+            {/* Donate Section */}
+            <div className="mt-12 text-center">
+              <p className="mb-2 text-lg font-semibold">Enjoying the app?</p>
+              <p className="mb-4 text-sm">Tap below to donate via CashApp and support more grow tools!</p>
+              <button
+                onClick={handleDonateClick}
+                className="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg transition"
+              >
+                💸 Donate via CashApp
+              </button>
+              {copied && (
+                <p className="mt-2 text-sm text-green-700">
+                  Copied <strong>$DaveVandergriff</strong> to clipboard!
+                </p>
+              )}
+            </div>
+          </>
         )}
       </div>
     </div>
