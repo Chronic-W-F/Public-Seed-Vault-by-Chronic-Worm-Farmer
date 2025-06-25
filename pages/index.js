@@ -29,7 +29,7 @@ export default function HomePage() {
         setUser(firebaseUser);
         const q = query(
           collection(db, 'publicSeeds'),
-          where('uid', '==', firebaseUser.uid)
+          where('userId', '==', firebaseUser.uid)
         );
         const snapshot = await getDocs(q);
         const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
