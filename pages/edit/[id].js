@@ -19,8 +19,8 @@ export default function EditSeedPage() {
   const [form, setForm] = useState({
     breeder: '',
     strain: '',
-    type: 'photo',
-    sex: 'reg',
+    type: '',
+    sex: '',
     notes: '',
   });
 
@@ -70,7 +70,6 @@ export default function EditSeedPage() {
               value={form.breeder}
               onChange={handleChange}
               className="w-full p-2 border rounded"
-              required
             />
           </div>
 
@@ -82,7 +81,6 @@ export default function EditSeedPage() {
               value={form.strain}
               onChange={handleChange}
               className="w-full p-2 border rounded"
-              required
             />
           </div>
 
@@ -93,8 +91,8 @@ export default function EditSeedPage() {
               value={form.type}
               onChange={handleChange}
               className="w-full p-2 border rounded"
-              required
             >
+              <option value="">Unknown</option>
               <option value="photo">photo</option>
               <option value="auto">auto</option>
             </select>
@@ -107,8 +105,8 @@ export default function EditSeedPage() {
               value={form.sex}
               onChange={handleChange}
               className="w-full p-2 border rounded"
-              required
             >
+              <option value="">Unknown</option>
               <option value="reg">reg</option>
               <option value="fem">fem</option>
             </select>
