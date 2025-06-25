@@ -32,7 +32,7 @@ export default function SearchPage() {
       if (user) {
         const q = query(
           collection(db, 'publicSeeds'),
-          where('uid', '==', user.uid)
+          where('userId', '==', user.uid) // ✅ FIXED: matches your Firestore rule
         );
         const snapshot = await getDocs(q);
         const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
@@ -70,13 +70,10 @@ export default function SearchPage() {
     try {
       await navigator.clipboard.writeText('$DaveVandergriff');
       setCopied(true);
-
-      // Try to open CashApp if installed
       window.location.href = 'cashapp://$DaveVandergriff';
     } catch (err) {
       alert('Copied to clipboard, but unable to open CashApp.');
     }
-
     setTimeout(() => setCopied(false), 3000);
   };
 
