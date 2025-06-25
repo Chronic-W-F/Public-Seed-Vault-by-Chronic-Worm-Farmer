@@ -45,10 +45,10 @@ export default function SeedEntryForm() {
     }
 
     const seedData = {
-      ...form,
-      uid: user.uid,
-      createdAt: serverTimestamp(),
-    };
+  ...form,
+  userId: user.uid, // ← Match this to your Firestore security rules
+  createdAt: serverTimestamp(),
+};
 
     await addDoc(collection(db, 'publicSeeds'), seedData);
     setForm({
