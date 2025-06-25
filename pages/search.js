@@ -32,7 +32,7 @@ export default function SearchPage() {
       if (user) {
         const q = query(
           collection(db, 'publicSeeds'),
-          where('userId', '==', user.uid) // ✅ FIXED: matches your Firestore rule
+          where('userId', '==', user.uid)
         );
         const snapshot = await getDocs(q);
         const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
@@ -47,15 +47,23 @@ export default function SearchPage() {
 
   useEffect(() => {
     const lower = search.toLowerCase();
+
     setFilteredSeeds(
-      seeds.filter(
-        (s) =>
-          s.breeder.toLowerCase().includes(lower) ||
-          s.strain.toLowerCase().includes(lower) ||
-          s.type.toLowerCase().includes(lower) ||
-          s.sex.toLowerCase().includes(lower) ||
-          (s.notes && s.notes.toLowerCase().includes(lower))
-      )
+      seeds.filter((s) => {
+        const breeder = (s.breeder || '').toLowerCase();
+        const strain = (s.strain || '').toLowerCase();
+        const type = (s.type || '').toLowerCase();
+        const sex = (s.sex || '').toLowerCase();
+        const notes = (s.notes || '').toLowerCase();
+
+        return (
+          breeder.includes(lower) ||
+          strain.includes(lower) ||
+          type.includes(lower) ||
+          sex.includes(lower) ||
+          notes.includes(lower)
+        );
+      })
     );
   }, [search, seeds]);
 
