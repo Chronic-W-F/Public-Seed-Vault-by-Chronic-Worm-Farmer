@@ -36,6 +36,7 @@ export default function SearchPage() {
         );
         const snapshot = await getDocs(q);
         const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        console.log("🌱 All fetched seeds:", data);
         setSeeds(data);
         setFilteredSeeds(data);
       } else {
@@ -103,9 +104,37 @@ export default function SearchPage() {
           <p className="text-gray-700">No seeds match your search.</p>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-            {filteredSeeds.map((seed) => (
-              <SeedCard key={seed.id} seed={seed} onDelete={handleDelete} />
-            ))}
+            {filteredSeeds.map((seed) => {
+              console.log("🔎 Attempting to render:", seed);
+              try {
+                const safeSeed = {
+                  id: seed.id,
+                  strain: seed.strain || 'Unnamed Strain',
+                  breeder: seed.breeder || 'Unknown',
+                  type: seed.type || 'N/A',
+                  sex: seed.sex || 'N/A',
+                  notes: seed.notes || 'None',
+                };
+
+                return (
+                  <SeedCard
+                    key={safeSeed.id}
+                    seed={safeSeed}
+                    onDelete={handleDelete}
+                  />
+                );
+              } catch (err) {
+                console.warn("❌ Failed to render seed:", seed, err);
+                return (
+                  <div
+                    key={seed.id}
+                    className="bg-red-100 text-red-900 border border-red-400 p-4 rounded"
+                  >
+                    ⚠️ Could not render this seed. Check field data.
+                  </div>
+                );
+              }
+            })}
           </div>
         )}
 
