@@ -5,12 +5,15 @@ import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   signInWithPopup,
+  sendPasswordResetEmail,
 } from 'firebase/auth';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLogin, setIsLogin] = useState(true);
+  const [showReset, setShowReset] = useState(false);
+  const [resetEmail, setResetEmail] = useState('');
   const router = useRouter();
 
   const handleSubmit = async (e) => {
@@ -31,6 +34,18 @@ export default function LoginPage() {
     try {
       await signInWithPopup(auth, provider);
       router.push('/');
+    } catch (err) {
+      alert(err.message);
+    }
+  };
+
+  const handleReset = async () => {
+    if (!resetEmail) return alert('Enter your email to reset password.');
+    try {
+      await sendPasswordResetEmail(auth, resetEmail);
+      alert('Password reset email sent!');
+      setShowReset(false);
+      setResetEmail('');
     } catch (err) {
       alert(err.message);
     }
@@ -78,15 +93,51 @@ export default function LoginPage() {
           Continue with Google
         </button>
 
-        <p className="mt-4 text-sm text-center">
-          {isLogin ? 'New here?' : 'Already have an account?'}{' '}
-          <button
-            onClick={() => setIsLogin(!isLogin)}
-            className="text-blue-600 hover:underline font-medium"
-          >
-            {isLogin ? 'Create an account' : 'Login instead'}
-          </button>
-        </p>
+        <div className="mt-4 text-sm text-center">
+          <p>
+            {isLogin ? 'New here?' : 'Already have an account?'}{' '}
+            <button
+              onClick={() => setIsLogin(!isLogin)}
+              className="text-blue-600 hover:underline font-medium"
+            >
+              {isLogin ? 'Create an account' : 'Login instead'}
+            </button>
+          </p>
+
+          {isLogin && (
+            <p
+              onClick={() => setShowReset(true)}
+              className="mt-2 text-blue-600 hover:underline cursor-pointer"
+            >
+              Forgot Password?
+            </p>
+          )}
+        </div>
+
+        {showReset && (
+          <div className="mt-6 p-4 bg-yellow-50 border border-yellow-300 rounded-md text-left shadow-inner">
+            <h2 className="font-bold text-md mb-2">🔑 Reset Your Password</h2>
+            <input
+              type="email"
+              placeholder="Enter your email"
+              className="border border-gray-300 p-2 rounded-md w-full mb-3"
+              value={resetEmail}
+              onChange={(e) => setResetEmail(e.target.value)}
+            />
+            <button
+              onClick={handleReset}
+              className="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded-md w-full"
+            >
+              Send Reset Email
+            </button>
+            <p
+              className="text-xs mt-2 text-gray-700 text-center underline cursor-pointer"
+              onClick={() => setShowReset(false)}
+            >
+              Cancel
+            </p>
+          </div>
+        )}
 
         <div className="mt-8 p-4 bg-gray-100 rounded-xl text-sm text-gray-800 shadow-inner">
           <h2 className="font-semibold text-base mb-2">📲 Save to Your Home Screen</h2>
