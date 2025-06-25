@@ -3,6 +3,7 @@ import {
   collection,
   addDoc,
   getFirestore,
+  serverTimestamp,
 } from 'firebase/firestore';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import { app } from '../firebase';
@@ -37,9 +38,16 @@ export default function SeedEntryForm() {
     e.preventDefault();
     if (!user) return;
 
+    // Optional: prevent saving if breeder or strain is blank
+    if (!form.breeder.trim() || !form.strain.trim()) {
+      alert('Breeder and Strain are required.');
+      return;
+    }
+
     const seedData = {
       ...form,
-      userId: user.uid,
+      uid: user.uid,
+      createdAt: serverTimestamp(),
     };
 
     await addDoc(collection(db, 'publicSeeds'), seedData);
@@ -63,6 +71,7 @@ export default function SeedEntryForm() {
           value={form.breeder}
           onChange={handleChange}
           className="w-full p-2 border rounded"
+          required
         />
       </div>
 
@@ -74,6 +83,7 @@ export default function SeedEntryForm() {
           value={form.strain}
           onChange={handleChange}
           className="w-full p-2 border rounded"
+          required
         />
       </div>
 
