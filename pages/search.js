@@ -9,6 +9,7 @@ import {
   collection,
   query,
   where,
+  orderBy,
   getDocs,
   doc,
   deleteDoc,
@@ -32,7 +33,9 @@ export default function SearchPage() {
       if (user) {
         const q = query(
           collection(db, 'publicSeeds'),
-          where('userId', '==', user.uid)
+          where('userId', '==', user.uid),
+          orderBy('breeder'),
+          orderBy('strain') // ⚠️ May require a composite index in Firebase
         );
         const snapshot = await getDocs(q);
         const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
